@@ -5,9 +5,6 @@ from modul_vytvoreni_slovniku import create_schedule, print_dict
 from modul_vytvoreni_hromadneho import create_schedule_hromadny
 
 
-# komentar
-
-
 studenti = nacti_studenty("vstup_var2_studenti.csv")
 print("Celkový počet studentů: " + str(len(studenti)))
 print(studenti)
