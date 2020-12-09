@@ -14,7 +14,7 @@ class Clovek:
         return self.name
     
     def vrat_kurz(self):
-        return self.kurz
+        return self.course
 
     def vrat_mozne_hodiny(self):
         return self.mozne_hodiny
