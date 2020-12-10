@@ -1,4 +1,5 @@
 import pandas as pd
+import pprint
 
 from modul_nacteni_vstupu import nacti_studenty, nacti_lektory
 from modul_vytvoreni_slovniku import create_schedule, print_dict
@@ -54,12 +55,38 @@ for student in studenti:
     else:
         slovnik_kurzu.get(course).append(student)
 
-print(slovnik_kurzu)
+pprint.pprint(slovnik_kurzu)
 
 
 for keys, values in slovnik_kurzu.items():
     pocet = len(values)
-    print(pocet)
+    print(keys, pocet)
 
 
 
+# GENEROVANI ROZVRHU
+
+for kurz, studenti in slovnik_kurzu.items():
+    if len(studenti) < 7:
+        pass
+        # zkontroluj, jestli nemuzou ve stejny cas
+        # zkontroluj, jestli v ten cas muze lektor 1 nebo lektor 2
+        # pokud jeden z nich ano, zadej kurz do zaverecnyho rozvrhu new_schedule_lektor1
+    else:
+        # zjistit, jestli existuje moznost dat je po sesti (delitelne 6) a jestli maji lektori volno
+            # pokud ano - vytvorit slovnik, kde klicem bude den+hodina a hodnotou bude seznam studentu, kteri muzou
+            # jinak pass
+        if len(studenti) % 6 == 0:
+            novy_slovnik = {}
+            for student in studenti:
+                for hodina, TF in student.vrat_mozne_hodiny().items():
+                    if TF == True:
+                        if hodina not in novy_slovnik.keys():
+                            novy_slovnik[hodina] = [student]
+                        else:
+                            novy_slovnik.get(hodina).append(student)
+            print(kurz)
+            pprint.pprint(novy_slovnik)
+        else:
+            print(kurz)
+            print("počet není dělitelný 6")
