@@ -49,7 +49,7 @@ dict_courses = {}
 
 # GENEROVANI ROZVRHU
 
-def make_schedule(studenti, lektori):
+def _make_dict_courses(studenti):
     slovnik_kurzu = {}  # slovnik, kde klicem je kurz a hodnotou seznam danych studentu
     for student in studenti:
         course = student.vrat_kurz()
@@ -57,12 +57,10 @@ def make_schedule(studenti, lektori):
             slovnik_kurzu[course] = [student]
         else:
             slovnik_kurzu.get(course).append(student)
-    pprint.pprint(slovnik_kurzu)
-    
-    print("Počet studentů v kurzu")
-    for keys, values in slovnik_kurzu.items():
-        print((str(keys)) + ": " + str(len(values)))
-    
+    return slovnik_kurzu
+
+
+def _make_dict_main(slovnik_kurzu):
     slovnik_vseho = {}       # nested slovnik, klicem je kurz, hodnoutou je opět klic, cimz je den a hodina, hodnotou je seznam studentu z daneho kurzu, kteri muzou v danou hodinu)
     for kurz, studenti in slovnik_kurzu.items():
         novy_slovnik = {}
@@ -74,10 +72,23 @@ def make_schedule(studenti, lektori):
                     else:
                         novy_slovnik.get(hodina).append(student)
         slovnik_vseho[kurz] = novy_slovnik
+    return slovnik_vseho
+
+
+def make_schedule(studenti, lektori):
+    slovnik_kurzu = _make_dict_courses(studenti)
+    pprint.pprint(slovnik_kurzu)
+    
+    print("Počet studentů v kurzu")
+    for keys, values in slovnik_kurzu.items():
+        print((str(keys)) + ": " + str(len(values)))
+    
+    slovnik_vseho = _make_dict_main(slovnik_kurzu)
     print(slovnik_vseho)
 
 
 make_schedule(studenti, lektori)
+
 
 
 
