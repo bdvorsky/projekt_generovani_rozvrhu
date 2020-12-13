@@ -47,46 +47,48 @@ dict_courses = {}
 # dict_courses[course] = list_students_in_course
 
 
-slovnik_kurzu = {}
-for student in studenti:
-    course = student.vrat_kurz()
-    if course not in slovnik_kurzu.keys():
-        slovnik_kurzu[course] = [student]
-    else:
-        slovnik_kurzu.get(course).append(student)
-
-pprint.pprint(slovnik_kurzu)
-
-
-for keys, values in slovnik_kurzu.items():
-    pocet = len(values)
-    print(keys, pocet)
-
-
-
 # GENEROVANI ROZVRHU
 
-for kurz, studenti in slovnik_kurzu.items():
-    if len(studenti) < 7:
-        pass
+def make_schedule(studenti, lektori):
+    slovnik_kurzu = {}  # slovnik, kde klicem je kurz a hodnotou seznam danych studentu
+    for student in studenti:
+        course = student.vrat_kurz()
+        if course not in slovnik_kurzu.keys():
+            slovnik_kurzu[course] = [student]
+        else:
+            slovnik_kurzu.get(course).append(student)
+    pprint.pprint(slovnik_kurzu)
+    
+    print("Počet studentů v kurzu")
+    for keys, values in slovnik_kurzu.items():
+        print((str(keys)) + ": " + str(len(values)))
+    
+    slovnik_vseho = {}       # nested slovnik, klicem je kurz, hodnoutou je opět klic, cimz je den a hodina, hodnotou je seznam studentu z daneho kurzu, kteri muzou v danou hodinu)
+    for kurz, studenti in slovnik_kurzu.items():
+        novy_slovnik = {}
+        for student in studenti:
+            for hodina, TF in student.mozne_hodiny.items():
+                if TF == True:
+                    if hodina not in novy_slovnik.keys():
+                        novy_slovnik[hodina] = [student]
+                    else:
+                        novy_slovnik.get(hodina).append(student)
+        slovnik_vseho[kurz] = novy_slovnik
+    print(slovnik_vseho)
+
+
+make_schedule(studenti, lektori)
+
+
+
+
+# podle poctu v kurzu
+# menší než 7
+    # if len(studenti) < 7:
         # zkontroluj, jestli nemuzou ve stejny cas
         # zkontroluj, jestli v ten cas muze lektor 1 nebo lektor 2
         # pokud jeden z nich ano, zadej kurz do zaverecnyho rozvrhu new_schedule_lektor1
-    else:
-        # zjistit, jestli existuje moznost dat je po sesti (delitelne 6) a jestli maji lektori volno
-            # pokud ano - vytvorit slovnik, kde klicem bude den+hodina a hodnotou bude seznam studentu, kteri muzou
-            # jinak pass
-        if len(studenti) % 6 == 0:
-            novy_slovnik = {}
-            for student in studenti:
-                for hodina, TF in student.vrat_mozne_hodiny().items():
-                    if TF == True:
-                        if hodina not in novy_slovnik.keys():
-                            novy_slovnik[hodina] = [student]
-                        else:
-                            novy_slovnik.get(hodina).append(student)
-            print(kurz)
-            pprint.pprint(novy_slovnik)
-        else:
-            print(kurz)
-            print("počet není dělitelný 6")
+# existuje moznost dat je po 6? --> dělitelný 6
+    # if len(studenti) % 6 == 0:
+    # zjistit, jestli muze lektor
+    # pokud ano - 
