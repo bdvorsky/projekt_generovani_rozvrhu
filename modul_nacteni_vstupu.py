@@ -26,9 +26,9 @@ def nacti(soubor, je_student):
                 course = radek[1]
                 _pridej_do_dict_moznych_hod(nadpisy_hodin, mozne_hodiny, casove_moznosti=radek[2:27])
                 if je_student:
-                    clovek = Student(name, course, mozne_hodiny)
+                    clovek = Student(name, course, mozne_hodiny, cas_kurzu="")
                 else:
-                    clovek = Lektor(name, course, mozne_hodiny)
+                    clovek = Lektor(name, course, mozne_hodiny, schedule={})
                 list_of_people.append(clovek)        # pridam studenta do seznamu studentu -> vznikne seznam hodnot tridy student
             line_counter += 1
     return list_of_people
