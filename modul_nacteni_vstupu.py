@@ -10,6 +10,11 @@ def _pridej_do_dict_moznych_hod(nadpisy_hodin, mozne_hodiny, casove_moznosti):
         mozne_hodiny[nadpisy_hodin[i]] = dostupny
 
 
+def _pridej_do_dict_schedule(nadpisy_hodin, schedule):
+    for i in range(0, 25):
+        schedule[nadpisy_hodin[i]] = ""
+
+
 def nacti(soubor, je_student):
     """nacte vstupni soubor radek po radku a rozdeli dle sloupcu na jmeno, kurz a casove moznosti, 
     a priradi kazdemu cloveku tridu student nebo lektor a zaradi je do listu"""
@@ -18,6 +23,7 @@ def nacti(soubor, je_student):
         line_counter = 0
         for line in vstup:
             mozne_hodiny = {}
+            schedule = {}
             radek = line.strip().split(";")
             if line_counter == 0:
                 nadpisy_hodin = radek[2:27]
@@ -25,10 +31,11 @@ def nacti(soubor, je_student):
                 name = radek[0]
                 course = radek[1]
                 _pridej_do_dict_moznych_hod(nadpisy_hodin, mozne_hodiny, casove_moznosti=radek[2:27])
+                _pridej_do_dict_schedule(nadpisy_hodin, schedule)
                 if je_student:
                     clovek = Student(name, course, mozne_hodiny, cas_kurzu="")
                 else:
-                    clovek = Lektor(name, course, mozne_hodiny, schedule={})
+                    clovek = Lektor(name, course, mozne_hodiny, schedule)
                 list_of_people.append(clovek)        # pridam studenta do seznamu studentu -> vznikne seznam hodnot tridy student
             line_counter += 1
     return list_of_people

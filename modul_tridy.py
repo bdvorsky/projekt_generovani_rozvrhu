@@ -29,10 +29,6 @@ class Student(Clovek):
     def vrat_cas_kurzu(self):
         return self.cas_kurzu
 
-    # def pridej_studenta(self, name, course, mozne_hodiny):
-        # student = Student(name, course, mozne_hodiny)
-        # self.studenti.append(student)
-
 
 class Lektor(Clovek):
     
