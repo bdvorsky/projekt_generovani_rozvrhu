@@ -2,7 +2,6 @@ import pandas as pd
 import pprint
 
 from modul_nacteni_vstupu import nacti_studenty, nacti_lektory
-# from modul_vytvoreni_slovniku import create_schedule, print_dict
 # from modul_vytvoreni_hromadneho import create_schedule_hromadny
 
 
@@ -87,6 +86,17 @@ def _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti):
     return dict_of_courses_and_possible_times
 
 
+def rearrange_dict(dict):
+    sorted_dict = {}
+    pocet_klicu = len(dict)
+    for i in range(pocet_klicu):
+        for klic, hodnota in dict.items():
+            if len(hodnota) == i:
+                sorted_dict[klic] = hodnota
+    print(sorted_dict)
+    return sorted_dict
+
+
 def make_schedule():
     # zatim zde neni zahrnut pocet 6 studentu na kurz
     slovnik_kurzu = _make_dict_courses(studenti)
@@ -102,7 +112,8 @@ def make_schedule():
     dict_of_courses_and_possible_times = _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti)
     pprint.pprint(dict_of_courses_and_possible_times)
 
-  
+    dict_of_courses_and_possible_times = rearrange_dict(dict_of_courses_and_possible_times)
+
     for kurz, cas_studenti in dict_of_courses_and_possible_times.items():           # cas_studenti je vnořený slovník, proto ho rozvíjím o řádek níž
         for cas, studenti_konkr_kurz in cas_studenti.items():                       # je v něm čas a seznam studentu napr. "pondeli 13:00": [Student 1, Student 2, ...]
             for i in range(len(lektori)):
@@ -111,14 +122,11 @@ def make_schedule():
                         if lektori[i].schedule[cas] == "":          # pokud čas v rozvrhu ještě není obsazený
                             lektori[i].schedule[cas] = kurz         # pridej do schedule lektora kurz
                             for student in studenti_konkr_kurz:
-                                student.cas_kurzu = cas             # pridat cas kurzu do atributu tridy Student
-        if kurz not in lektori[i].schedule.values() and kurz not in lektori[i-1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro key a ie
+                                student.cas_kurzu = cas
+                                student.jeho_lektor = lektori[i]             # pridat cas kurzu do atributu tridy Student
+        if kurz not in lektori[i].schedule.values() and kurz not in lektori[i-1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
             # najdi jiný termín pro kurz, který je v tomto čase a do tohoto času dej tento kurz
-            pass
-    
-
-
-
+            print(kurz)
 
     for lektor in lektori:
         print(lektor)

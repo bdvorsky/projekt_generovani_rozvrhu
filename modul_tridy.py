@@ -22,12 +22,16 @@ class Clovek:
 
 class Student(Clovek):
     
-    def __init__(self, name, course, mozne_hodiny, cas_kurzu):
+    def __init__(self, name, course, mozne_hodiny, cas_kurzu, jeho_lektor):
         Clovek.__init__(self, name, course, mozne_hodiny)
         self.cas_kurzu = cas_kurzu
+        self.jeho_lektor = jeho_lektor
     
     def vrat_cas_kurzu(self):
         return self.cas_kurzu
+    
+    def vrat_jeho_lektora(self):
+        return self.jeho_lektor
 
 
 class Lektor(Clovek):
