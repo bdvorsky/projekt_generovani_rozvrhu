@@ -18,7 +18,6 @@ lektori = nacti_lektory("vstup_lektori.csv")
 # novy_rozvrh_hromadny = create_schedule_hromadny()
 
 
-
 # GENEROVANI ROZVRHU
 
 def _make_dict_courses(studenti):
@@ -103,14 +102,20 @@ def make_schedule():
     dict_of_courses_and_possible_times = _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti)
     pprint.pprint(dict_of_courses_and_possible_times)
 
-    for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
-        for cas, studenti2 in cas_studenti.items():
-            for i in range(2):
-                if lektori[i].mozne_hodiny[cas]:            # if True
-                    lektori[i].schedule[cas] = kurz         # pridej do schedule lektora kurz
+    for kurz, cas_studenti in dict_of_courses_and_possible_times.items():           # cas_studenti je vnořený slovník, proto ho rozvíjím o řádek níž
+        for cas, studenti_konkr_kurz in cas_studenti.items():                       # je v něm čas a seznam studentu napr. "pondeli 13:00": [Student 1, Student 2, ...]
+            for i in range(len(lektori)):
+                if kurz not in lektori[i].schedule.values():            # pokud kurz ještě není v rozvrhu lektora --> aby se nevypsal dvakrát
+                    if kurz not in lektori[i-1].schedule.values():      # ! pozor, limitováno 2 lektory - pokud kurz nebyl zapsán u předchozího lektora --> vymyslet jinak
+                        if lektori[i].mozne_hodiny[cas]:                # if True (jestli lektor v dany cas muze)
+                            if lektori[i].schedule[cas] == "":          # pokud čas v rozvrhu ještě není obsazený
+                                lektori[i].schedule[cas] = kurz         # pridej do schedule lektora kurz
+                            else:                                       # pokud čas je obsazený
+                                pass
     
     
     for lektor in lektori:
+        print(lektor)
         pprint.pprint(lektor.schedule)
     
 
