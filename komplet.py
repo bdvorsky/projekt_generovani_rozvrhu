@@ -91,35 +91,48 @@ def make_schedule():
     # zatim zde neni zahrnut pocet 6 studentu na kurz
     slovnik_kurzu = _make_dict_courses(studenti)
     # print(slovnik_kurzu)
-    
+
     # print("Počet studentů v kurzu")
     # for keys, values in slovnik_kurzu.items():
         # print((str(keys)) + ": " + str(len(values)))
-    
+
     slovnik_kurz_cas_studenti = _make_dict_main(slovnik_kurzu)
     print(slovnik_kurz_cas_studenti)
 
     dict_of_courses_and_possible_times = _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti)
     pprint.pprint(dict_of_courses_and_possible_times)
 
+  
     for kurz, cas_studenti in dict_of_courses_and_possible_times.items():           # cas_studenti je vnořený slovník, proto ho rozvíjím o řádek níž
         for cas, studenti_konkr_kurz in cas_studenti.items():                       # je v něm čas a seznam studentu napr. "pondeli 13:00": [Student 1, Student 2, ...]
             for i in range(len(lektori)):
-                if kurz not in lektori[i].schedule.values():            # pokud kurz ještě není v rozvrhu lektora --> aby se nevypsal dvakrát
-                    if kurz not in lektori[i-1].schedule.values():      # ! pozor, limitováno 2 lektory - pokud kurz nebyl zapsán u předchozího lektora --> vymyslet jinak
-                        if lektori[i].mozne_hodiny[cas]:                # if True (jestli lektor v dany cas muze)
-                            if lektori[i].schedule[cas] == "":          # pokud čas v rozvrhu ještě není obsazený
-                                lektori[i].schedule[cas] = kurz         # pridej do schedule lektora kurz
-                            else:                                       # pokud čas je obsazený
-                                pass
+                if kurz not in lektori[i].schedule.values() and kurz not in lektori[i-1].schedule.values():            # pokud kurz ještě není v rozvrhu lektora --> aby se nevypsal dvakrát, !limitováno 2 lektory - pokud kurz nebyl zapsán u předchozího lektora --> vymyslet jinak
+                    if lektori[i].mozne_hodiny[cas]:                # if True (jestli lektor v dany cas muze, je uprednostnen lektor 1)
+                        if lektori[i].schedule[cas] == "":          # pokud čas v rozvrhu ještě není obsazený
+                            lektori[i].schedule[cas] = kurz         # pridej do schedule lektora kurz
+                            for student in studenti_konkr_kurz:
+                                student.cas_kurzu = cas             # pridat cas kurzu do atributu tridy Student
+        if kurz not in lektori[i].schedule.values() and kurz not in lektori[i-1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro key a ie
+            # najdi jiný termín pro kurz, který je v tomto čase a do tohoto času dej tento kurz
+            pass
     
-    
+
+
+
+
     for lektor in lektori:
         print(lektor)
         pprint.pprint(lektor.schedule)
-    
 
 
+    # VYPSANI DO HTML
+
+    # data = []
+    # dat = lektor.schedule
+    # df = pd.DataFrame(data, index=[""])
+    # df = df.fillna('').T
+    # df.to_html("vystup.html")
+        
 make_schedule()
 
 
