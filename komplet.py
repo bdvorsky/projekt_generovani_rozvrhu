@@ -72,7 +72,8 @@ def _longest_in_dict(slovnik):
 
 def _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti):
     """vytvori slovnik, kde je klicem kurz a hodnotou slovnik, 
-    kde je klic cas, ve ktery muze nejvic studentu, a hodnotou studenti, kteri muzou"""
+    kde je klic cas, ve ktery muze nejvic studentu, a hodnotou studenti, kteri muzou.
+    Zaroven kontroluje jestli v dany cas muzou lektori a vraci jen casy kdy ano"""
     dict_of_courses_and_possible_times = {}
     for key, value in slovnik_kurz_cas_studenti.items():
         dict_of_times = _longest_in_dict(value)
@@ -81,6 +82,7 @@ def _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti):
 
 
 def rearrange_dict(dict):
+    """funkce presklada slovnik - na prvni misto da kurzy s nejmene moznostmi na vyber"""
     # TODO: pridat kriterium - cim delsi seznam studentu v hodnote, tim driv ho dat
     sorted_dict = {}
     pocet_klicu = len(dict)
@@ -98,10 +100,9 @@ def register_course_to_lector_student(kurz, cas, varka, studenti_konkr_kurz):
                 if lektori[i].schedule[cas] == "":          # pokud čas v rozvrhu ještě není obsazený
                     lektori[i].schedule[cas] = kurz + str(varka)         # pridej do schedule lektora kurz
                     for student in studenti_konkr_kurz:
-                        if not student.jeho_kurz:
-                            student.cas_kurzu = cas
-                            student.jeho_kurz = kurz + str(varka)
-                            student.jeho_lektor = lektori[i]             # pridat cas kurzu do atributu tridy Student
+                        student.cas_kurzu = cas
+                        student.jeho_kurz = kurz + str(varka)
+                        student.jeho_lektor = lektori[i]             # pridat cas kurzu do atributu tridy Student
 
 
 def main_algorithm(slovnik, varka):
@@ -110,15 +111,15 @@ def main_algorithm(slovnik, varka):
             register_course_to_lector_student(kurz, cas, varka, studenti_konkr_kurz)
 
 
-def find_next_longest(kurz, varka, slovnik_kurz_cas_studenti):
-    slovnik_moznych_casu_kurzu = slovnik_kurz_cas_studenti[kurz]
-    nejdelsi = _longest_in_dict(slovnik_moznych_casu_kurzu)
+def find_next_longest(kurz, varka, slovnik):
+    slovnik_moznych_casu_kurzu = slovnik[kurz]          # extract dict for one particular course, put it in a new dict                     
+    nejdelsi = _longest_in_dict(slovnik_moznych_casu_kurzu)             # find the longest options in the new dict
     for cas in nejdelsi:
-        del slovnik_moznych_casu_kurzu[cas]        
+        del slovnik_moznych_casu_kurzu[cas]                             # delete the longest from the new dict
     dalsi_nejdelsi = _longest_in_dict(slovnik_moznych_casu_kurzu)
     for cas, studenti_konkr_kurz in dalsi_nejdelsi.items():           # je v něm čas a seznam studentu napr. "pondeli 13:00": [Student 1, Student 2, ...]
         register_course_to_lector_student(kurz, cas, varka, studenti_konkr_kurz)
-    return dalsi_nejdelsi
+    return slovnik_moznych_casu_kurzu
 
 
 def make_schedule():
@@ -127,8 +128,6 @@ def make_schedule():
     # TODO: zjistit, proc se nechce vypsat key (najit dalsi moznost nejdelsiho)
     # problem bude asi v tech funkcich longest a a find next longest -- asi špatně zadané vstupy, line 175?
     slovnik_kurzu = _make_dict_courses(studenti)
-    print("slovník kurzů")
-    print(slovnik_kurzu)
 
     # print("Počet studentů v kurzu")
     # for keys, values in slovnik_kurzu.items():
@@ -146,12 +145,14 @@ def make_schedule():
     main_algorithm(dict_of_courses_and_possible_times, varka)
     for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
         if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
-            dalsi_nejdelsi = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti)
-            if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
-                dalsi_nejdelsi2 = find_next_longest(kurz, varka, dalsi_nejdelsi)
-                if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
-                    dalsi_nejdelsi3 = find_next_longest(kurz, varka, dalsi_nejdelsi2)
-
+            print(kurz)
+            bez_nejdelsiho = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti)
+            if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
+                bez_nejdelsiho2 = find_next_longest(kurz, varka, bez_nejdelsiho)
+                if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
+                    dalsi_nejdelsiho3 = find_next_longest(kurz, varka, bez_nejdelsiho2)
+                    if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
+                        dalsi_nejdelsi4 = find_next_longest(kurz, varka, bez_nejdelsiho3)
 
     the_rest = {}
     for kurz, seznam_studenti in slovnik_kurzu.items():
@@ -159,7 +160,7 @@ def make_schedule():
         for student in seznam_studenti:
             if student.cas_kurzu == "":
                 students.append(student)
-        the_rest[kurz] = students
+        the_rest[kurz] =   
     print()
     print("the_rest:")
     print(the_rest)
@@ -171,9 +172,9 @@ def make_schedule():
     varka = 2
     main_algorithm(dict_of_courses_and_possible_times2, varka)
     for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
-        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
+        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:  
             dalsi_nejdelsi = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti2)
-            # if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
+            # if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
                 # dalsi_nejdelsi2 = find_next_longest(kurz, varka, dalsi_nejdelsi)
 
 
@@ -194,9 +195,9 @@ def make_schedule():
     varka = 3
     main_algorithm(dict_of_courses_and_possible_times3, varka)
     for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
-        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
+        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
             dalsi_nejdelsi = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti3)
-            # if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
+            # if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
                 # dalsi_nejdelsi2 = find_next_longest(kurz, varka, dalsi_nejdelsi)
 
 
