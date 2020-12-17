@@ -6,7 +6,7 @@ import pprint
 
 from modul_nacteni_vstupu import nacti_studenty, nacti_lektory
 
-studenti = nacti_studenty("vstup_var2_lektori.csv")
+studenti = nacti_studenty("vstup_var2_studenti.csv")
 
 lektori = nacti_lektory("vstup_lektori.csv")
 
@@ -124,14 +124,14 @@ def find_next_longest(kurz, varka, slovnik):
     return slovnik_moznych_casu_kurzu
 
 
-def look_for_next(kurz, varka, slovnik_kurz_cas_studenti):
+def look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani):
     """mezi zbylymi studenty hleda dalsi pruniky"""
     print(kurz, varka)
     bez_nejdelsiho = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti)
-    i = 0
     if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
-        if i < 10:
-            bez_nejdelsiho = look_for_next(kurz, varka, bez_nejdelsiho)
+        if opakovani < 10:
+            opakovani += 1
+            bez_nejdelsiho = look_for_next(kurz, varka, bez_nejdelsiho, opakovani)
         else:
             print("Nebylo možné najít další nejdelší a umístit kurz.")
 
@@ -169,7 +169,7 @@ def make_schedule():
     for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
         if not all_students_placed(kurz):
             if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
-                look_for_next(kurz, varka, slovnik_kurz_cas_studenti)
+                look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani=10)
 
     the_rest = {}
     for kurz, seznam_studenti in slovnik_kurzu.items():
@@ -192,7 +192,7 @@ def make_schedule():
     for kurz, cas_studenti in dict_of_courses_and_possible_times2.items():
         if not all_students_placed(kurz):
             if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
-                look_for_next(kurz, varka, slovnik_kurz_cas_studenti)
+                look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani=10)
 
 
     the_rest_rest = {}
@@ -217,7 +217,7 @@ def make_schedule():
             if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
                 print(kurz)
                 print(209)
-                # look_for_next(kurz, varka, slovnik_kurz_cas_studenti)
+                # look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani=10)
 
 
     the_rest_rest_rest = {}
@@ -240,7 +240,7 @@ def make_schedule():
         if not all_students_placed(kurz):
             if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
                 print(kurz + str(varka))
-            # look_for_next(kurz, varka, slovnik_kurz_cas_studenti)
+            # look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani=10)
     
 
     the_rest_rest_rest_rest = {}
@@ -263,7 +263,7 @@ def make_schedule():
         if not all_students_placed(kurz):
             if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
                 print(kurz + str(varka))
-                # look_for_next(kurz, varka, slovnik_kurz_cas_studenti)
+                # look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani=10)
 
     for lektor in lektori:
         print(lektor)
