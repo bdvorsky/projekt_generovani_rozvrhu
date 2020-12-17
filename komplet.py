@@ -1,20 +1,14 @@
 import pandas as pd
 import pprint
 
-from modul_nacteni_vstupu import nacti_studenty, nacti_lektory
-# from modul_vytvoreni_hromadneho import create_schedule_hromadny
 
+# NACTENI VSTUPU
+
+from modul_nacteni_vstupu import nacti_studenty, nacti_lektory
 
 studenti = nacti_studenty("vstup_var2_studenti.csv")
-# print("Celkový počet studentů: " + str(len(studenti)))
-# print(studenti)
-
 
 lektori = nacti_lektory("vstup_lektori.csv")
-# print("Celkový počet lektorů: " + str(len(lektori)))
-# print(lektori)
-
-# novy_rozvrh_hromadny = create_schedule_hromadny()
 
 
 # GENEROVANI ROZVRHU
@@ -78,7 +72,7 @@ def _longest_in_dict(slovnik):
 
 def _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti):
     """vytvori slovnik, kde je klicem kurz a hodnotou slovnik, 
-    kde je klic cas, ve ktery muze nejvic studentu, a hodnotou lektori, kteri muzou"""
+    kde je klic cas, ve ktery muze nejvic studentu, a hodnotou studenti, kteri muzou"""
     dict_of_courses_and_possible_times = {}
     for key, value in slovnik_kurz_cas_studenti.items():
         dict_of_times = _longest_in_dict(value)
@@ -87,53 +81,150 @@ def _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti):
 
 
 def rearrange_dict(dict):
+    # TODO: pridat kriterium - cim delsi seznam studentu v hodnote, tim driv ho dat
     sorted_dict = {}
     pocet_klicu = len(dict)
-    for i in range(pocet_klicu):
+    for i in range(26):
         for klic, hodnota in dict.items():
             if len(hodnota) == i:
                 sorted_dict[klic] = hodnota
-    print(sorted_dict)
     return sorted_dict
 
 
+def register_course_to_lector_student(kurz, cas, varka, studenti_konkr_kurz):
+    for i in range(len(lektori)):
+        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():            # pokud kurz ještě není v rozvrhu lektora --> aby se nevypsal dvakrát, !limitováno 2 lektory - pokud kurz nebyl zapsán u předchozího lektora --> vymyslet jinak
+            if lektori[i].mozne_hodiny[cas]:                # if True (jestli lektor v dany cas muze, je uprednostnen lektor 1)
+                if lektori[i].schedule[cas] == "":          # pokud čas v rozvrhu ještě není obsazený
+                    lektori[i].schedule[cas] = kurz + str(varka)         # pridej do schedule lektora kurz
+                    for student in studenti_konkr_kurz:
+                        if not student.jeho_kurz:
+                            student.cas_kurzu = cas
+                            student.jeho_kurz = kurz + str(varka)
+                            student.jeho_lektor = lektori[i]             # pridat cas kurzu do atributu tridy Student
+
+
+def main_algorithm(slovnik, varka):
+    for kurz, cas_studenti in slovnik.items():           # cas_studenti je vnořený slovník, proto ho rozvíjím o řádek níž
+        for cas, studenti_konkr_kurz in cas_studenti.items():                       # je v něm čas a seznam studentu napr. "pondeli 13:00": [Student 1, Student 2, ...]
+            register_course_to_lector_student(kurz, cas, varka, studenti_konkr_kurz)
+
+
+def find_next_longest(kurz, varka, slovnik_kurz_cas_studenti):
+    slovnik_moznych_casu_kurzu = slovnik_kurz_cas_studenti[kurz]
+    nejdelsi = _longest_in_dict(slovnik_moznych_casu_kurzu)
+    for cas in nejdelsi:
+        del slovnik_moznych_casu_kurzu[cas]        
+    dalsi_nejdelsi = _longest_in_dict(slovnik_moznych_casu_kurzu)
+    for cas, studenti_konkr_kurz in dalsi_nejdelsi.items():           # je v něm čas a seznam studentu napr. "pondeli 13:00": [Student 1, Student 2, ...]
+        register_course_to_lector_student(kurz, cas, varka, studenti_konkr_kurz)
+    return dalsi_nejdelsi
+
+
 def make_schedule():
-    # zatim zde neni zahrnut pocet 6 studentu na kurz
+    # TODO: ošetřit, aby se nevypisovaly nový kurzy s 0 studenty
+    # TODO: zahrnout pocet studentu max 6 na kurz
+    # TODO: zjistit, proc se nechce vypsat key (najit dalsi moznost nejdelsiho)
+    # problem bude asi v tech funkcich longest a a find next longest -- asi špatně zadané vstupy, line 175?
     slovnik_kurzu = _make_dict_courses(studenti)
-    # print(slovnik_kurzu)
+    print("slovník kurzů")
+    print(slovnik_kurzu)
 
     # print("Počet studentů v kurzu")
     # for keys, values in slovnik_kurzu.items():
         # print((str(keys)) + ": " + str(len(values)))
 
     slovnik_kurz_cas_studenti = _make_dict_main(slovnik_kurzu)
-    print(slovnik_kurz_cas_studenti)
-
+    # print(slovnik_kurz_cas_studenti)
     dict_of_courses_and_possible_times = _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti)
-    pprint.pprint(dict_of_courses_and_possible_times)
-
+    # pprint.pprint(dict_of_courses_and_possible_times)
     dict_of_courses_and_possible_times = rearrange_dict(dict_of_courses_and_possible_times)
 
-    for kurz, cas_studenti in dict_of_courses_and_possible_times.items():           # cas_studenti je vnořený slovník, proto ho rozvíjím o řádek níž
-        for cas, studenti_konkr_kurz in cas_studenti.items():                       # je v něm čas a seznam studentu napr. "pondeli 13:00": [Student 1, Student 2, ...]
-            for i in range(len(lektori)):
-                if kurz not in lektori[i].schedule.values() and kurz not in lektori[i-1].schedule.values():            # pokud kurz ještě není v rozvrhu lektora --> aby se nevypsal dvakrát, !limitováno 2 lektory - pokud kurz nebyl zapsán u předchozího lektora --> vymyslet jinak
-                    if lektori[i].mozne_hodiny[cas]:                # if True (jestli lektor v dany cas muze, je uprednostnen lektor 1)
-                        if lektori[i].schedule[cas] == "":          # pokud čas v rozvrhu ještě není obsazený
-                            lektori[i].schedule[cas] = kurz         # pridej do schedule lektora kurz
-                            for student in studenti_konkr_kurz:
-                                student.cas_kurzu = cas
-                                student.jeho_lektor = lektori[i]             # pridat cas kurzu do atributu tridy Student
-        if kurz not in lektori[i].schedule.values() and kurz not in lektori[i-1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
-            # najdi jiný termín pro kurz, který je v tomto čase a do tohoto času dej tento kurz
-            print(kurz)
+
+    # TODO: rozdělit do funkcí
+    varka = 1
+    main_algorithm(dict_of_courses_and_possible_times, varka)
+    for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
+        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
+            dalsi_nejdelsi = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti)
+            if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
+                dalsi_nejdelsi2 = find_next_longest(kurz, varka, dalsi_nejdelsi)
+                if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
+                    dalsi_nejdelsi3 = find_next_longest(kurz, varka, dalsi_nejdelsi2)
+
+
+    the_rest = {}
+    for kurz, seznam_studenti in slovnik_kurzu.items():
+        students = []
+        for student in seznam_studenti:
+            if student.cas_kurzu == "":
+                students.append(student)
+        the_rest[kurz] = students
+    print()
+    print("the_rest:")
+    print(the_rest)
+    slovnik_kurz_cas_studenti2 = _make_dict_main(the_rest)
+    dict_of_courses_and_possible_times2 = _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti2)
+    dict_of_courses_and_possible_times2 = rearrange_dict(dict_of_courses_and_possible_times2)
+
+
+    varka = 2
+    main_algorithm(dict_of_courses_and_possible_times2, varka)
+    for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
+        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
+            dalsi_nejdelsi = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti2)
+            # if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
+                # dalsi_nejdelsi2 = find_next_longest(kurz, varka, dalsi_nejdelsi)
+
+
+    the_rest_rest = {}
+    for kurz, seznam_studenti in slovnik_kurzu.items():
+        students = []
+        for student in seznam_studenti:
+            if student.cas_kurzu == "":
+                students.append(student)
+            the_rest_rest[kurz] = students
+    print()
+    print("the_rest_rest:")
+    print(the_rest_rest)
+    slovnik_kurz_cas_studenti3 = _make_dict_main(the_rest_rest)
+    dict_of_courses_and_possible_times3 = _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti3)
+    dict_of_courses_and_possible_times3 = rearrange_dict(dict_of_courses_and_possible_times3)
+
+    varka = 3
+    main_algorithm(dict_of_courses_and_possible_times3, varka)
+    for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
+        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
+            dalsi_nejdelsi = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti3)
+            # if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet
+                # dalsi_nejdelsi2 = find_next_longest(kurz, varka, dalsi_nejdelsi)
+
+
+    the_rest_rest_rest = {}
+    for kurz, seznam_studenti in slovnik_kurzu.items():
+        students = []
+        for student in seznam_studenti:
+            if student.cas_kurzu == "":
+                students.append(student)
+            the_rest_rest_rest[kurz] = students
+    print()
+    print("the_rest_rest_rest:")
+    print(the_rest_rest_rest)
+    slovnik_kurz_cas_studenti4 = _make_dict_main(the_rest_rest_rest)
+    dict_of_courses_and_possible_times4 = _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti4)
+    dict_of_courses_and_possible_times4 = rearrange_dict(dict_of_courses_and_possible_times4)
+
 
     for lektor in lektori:
         print(lektor)
         pprint.pprint(lektor.schedule)
+    
+    # for student in studenti:
+        # print(student)
+        # print(student.jeho_kurz)
 
 
-    # VYPSANI DO HTML
+    # PRINT TO HTML
 
     # data = []
     # dat = lektor.schedule
@@ -145,9 +236,37 @@ make_schedule()
 
 
 
-# poznamky
-    # vzít první a umístit
-    # vzít druhý a umístit, pokud nejde, najít jiný termín druhého, jinak najít druhý termín toho, se kterým se to kryje
+# poznamky:
+
+
+# funkce pro rozdeleni na 6: 
+# def chunks(lst, n):
+# """Yield successive n-sized chunks from lst."""
+    # for i in range(0, len(lst), n):
+    # yield lst[i:i + n]
+
+# def find_chunk_size(list, cislo_na_rozpuleni):
+    # delka_list = len(list)
+    # if delka_list/2 > cislo_na_rozpuleni:
+        # if delka_list/3 > cislo_na_rozpuleni:
+            # return delka_list//4
+        # else:
+            # return delka_list//3
+    # else:
+        # return delka_list//2  
+
+# def rozsekej_slovnik_kurzu(slovnik_kurzu, cislo_na_rozpuleni):
+    # for key in list(slovnik_kurzu):
+        # if len(slovnik_kurzu.get(key)) > 6:
+            # n_lists = chunks(slovnik_kurzu.get(key),find_chunk_size(slovnik_kurzu.get(key),cislo_na_rozpuleni))
+            # i = 1
+            # for lst in n_lists:
+                # slovnik_kurzu[key + "_" + str(i)] = lst
+                # i = i + 1
+            # del slovnik_kurzu[key]
+        
+# rozsekej_slovnik_kurzu(slovnik_kurzu,6)
+
 
     # for klic, hodnota in dict_of_courses_and_possible_times.items():      # klicem je kurz
         # najdi studenty, kteri maji ve slovnik_kurz_cas_studenti dany klic
