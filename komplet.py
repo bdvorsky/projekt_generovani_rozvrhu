@@ -26,7 +26,7 @@ def _make_dict_courses(studenti):
 
 
 def _make_dict_main(slovnik_kurzu):
-    """ vrati slovnik, klicem je kurz, hodnoutou je slovnik
+    """vrati slovnik, klicem je kurz, hodnoutou je slovnik
     v nested slovniku je klicem cas a hodnotou je seznam studentu z daneho kurzu, kteri muzou v dany cas"""
     slovnik_kurz_cas_studenti = {}
     for kurz, studenti in slovnik_kurzu.items():
@@ -93,16 +93,24 @@ def rearrange_dict(dict):
     return sorted_dict
 
 
+def _course_not_in_schedule(kurz):
+    """zkontroluje, jestli v dany cas alespon jeden z lektoru muze a vrati bool"""
+    for lektor in lektori:
+        if kurz in lektor.schedule.values():
+            return False
+    return True
+
+
 def register_course_to_lector_student(kurz, cas, varka, studenti_konkr_kurz):
     for i in range(len(lektori)):
-        if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():            # pokud kurz ještě není v rozvrhu lektora --> aby se nevypsal dvakrát, !limitováno 2 lektory - pokud kurz nebyl zapsán u předchozího lektora --> vymyslet jinak
-            if lektori[i].mozne_hodiny[cas]:                # if True (jestli lektor v dany cas muze, je uprednostnen lektor 1)
+        if _course_not_in_schedule(kurz + str(varka)):           # pokud kurz ještě není v rozvrhu lektoru
+            if lektori[i].mozne_hodiny[cas]:                # if True (jestli lektor v dany cas muze; je uprednostnen lektor 1)
                 if lektori[i].schedule[cas] == "":          # pokud čas v rozvrhu ještě není obsazený
                     lektori[i].schedule[cas] = kurz + str(varka)         # pridej do schedule lektora kurz
                     for student in studenti_konkr_kurz:
-                        student.cas_kurzu = cas
+                        student.cas_kurzu = cas                 # pridat cas kurzu do atributu tridy Student
                         student.jeho_kurz = kurz + str(varka)
-                        student.jeho_lektor = lektori[i]             # pridat cas kurzu do atributu tridy Student
+                        student.jeho_lektor = lektori[i]
 
 
 def main_algorithm(slovnik, varka):
@@ -125,7 +133,7 @@ def find_next_longest(kurz, varka, slovnik):
 def look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani):
     """mezi zbylymi studenty hleda dalsi pruniky"""
     bez_nejdelsiho = find_next_longest(kurz, varka, slovnik_kurz_cas_studenti)
-    if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
+    if _course_not_in_schedule(kurz + str(varka)):  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není:
         if opakovani < 10:
             opakovani += 1
             bez_nejdelsiho = look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani)
@@ -141,27 +149,31 @@ def all_students_placed(kurz):
     return True
 
 
+def print_to_html():
+    data = []
+    for i in range(len(lektori)):
+        data = lektori[i].schedule
+        df = pd.DataFrame(data, index=[""])
+        df = df.fillna('').T
+        df.to_html("vystup_lektor" + str(i) + ".html")
+
 
 def make_schedule():
     # TODO: ošetřit, aby se nevypisovaly nový kurzy s 0 nebo s 1 studenty
     # TODO: zahrnout pocet studentu max 6 na kurz
     slovnik_kurzu = _make_dict_courses(studenti)
-
-    # print("Počet studentů v kurzu")
-    # for keys, values in slovnik_kurzu.items():
-        # print((str(keys)) + ": " + str(len(values)))
-
+        # print("Počet studentů v kurzu")
+        # for keys, values in slovnik_kurzu.items():
+            # print((str(keys)) + ": " + str(len(values)))
     for varka in range(1, 10):
         slovnik_kurz_cas_studenti = _make_dict_main(slovnik_kurzu)
-        # print(slovnik_kurz_cas_studenti)
         dict_of_courses_and_possible_times = _make_dict_of_courses_and_possible_times(slovnik_kurz_cas_studenti)
-        # pprint.pprint(dict_of_courses_and_possible_times)
         dict_of_courses_and_possible_times = rearrange_dict(dict_of_courses_and_possible_times)
 
         main_algorithm(dict_of_courses_and_possible_times, varka)
         for kurz, cas_studenti in dict_of_courses_and_possible_times.items():
             if not all_students_placed(kurz):
-                if kurz + str(varka) not in lektori[0].schedule.values() and kurz + str(varka) not in lektori[1].schedule.values():  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
+                if _course_not_in_schedule(kurz + str(varka)):  # pokud si vyzkoušel všechny lektory i casy a kurz tam pořád není: - u mych dat pro pet   
                     look_for_next(kurz, varka, slovnik_kurz_cas_studenti, opakovani=0)
 
         the_rest = {}
@@ -174,25 +186,34 @@ def make_schedule():
 
         slovnik_kurzu = the_rest
     
-
     for lektor in lektori:
         print(lektor)
         pprint.pprint(lektor.schedule)
 
     for student in studenti:
         if student.jeho_kurz == "":
-            print(str(student) + " patřící do kurzu " + str(kurz) + " se nikam nevlezl.")
+            print(str(student) + " patřící do kurzu " + str(student.course) + " se nikam nevlezl.")
+    
+    casy = []
+    for student in studenti:
+       if student.cas_kurzu not in casy:
+            casy.append(student.cas_kurzu)
+
+    slovnik = {}
+    for cas in casy:
+        seznam = []
+        for student in studenti:
+            if student.cas_kurzu == cas:
+                seznam.append(student)
+        slovnik[cas] = seznam
+        print(cas, seznam)
+    print(slovnik)
 
 
-    # PRINT TO HTML
+    # print_to_html()
 
-    data = []
-    for i in range(len(lektori)):
-        data = lektori[i].schedule
-        df = pd.DataFrame(data, index=[""])
-        df = df.fillna('').T
-        df.to_html("vystup_lektor" + str(i) + ".html")
-        
+
+
 make_schedule()
 
 
