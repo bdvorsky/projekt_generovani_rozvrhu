@@ -5,7 +5,6 @@ import os
 
 # NACTENI VSTUPU
 
-
 from modul_nacteni_vstupu import nacti_studenty, nacti_lektory
 from modul_tridy import Kurz
 
