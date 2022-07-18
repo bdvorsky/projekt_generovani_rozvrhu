@@ -1,3 +1,5 @@
+<img src="work-schedule.png" alt="Schedule generator" style="width: 10%;" align="right"/>
+
 # Schedule Generator Project
 
 This Python application allows users to generate a schedule for small classes like language teaching, small work schedules etc., based on input criteria:
