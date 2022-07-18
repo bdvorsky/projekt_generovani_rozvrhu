@@ -1,11 +1,11 @@
-# Projekt generování rozvrhu
+# Schedule Generator Project
 
-## Spuštění
-<p>Hlavní program se nachází v souboru komplet.py a ke spuštění vyžaduje zbytek modulů a vstupní data ve stejném adresáři.</p>
+## Launch
+<p>The programme itself is located in the file "schedule_generator" and it requires the rest of the modules and the input file in the same directory.</p>
 
-## Běh
-<p>Program načte vstupní data (.csv soubory, které obsahují dostupnost studentů a lektorů).</p>
-<p>Tyto data se zpracují a vyhodnotí ideální variantu rozvrhů pro dva lektory.</p>
+## Loading and Data Processing
+<p>The programme loads input data (csv files in the "input" directory, which contain the data of availability of students and lectors).</p>
+<p>The data is processed and the ideal variant of schedules for both of the lectors is evaluated.</p>
 
-## Výstup
-<p>Výsledek se zobrazí jako html soubor.</p>
+## Output
+<p>The outcome is printed to a html file.</p>
